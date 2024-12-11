@@ -71,10 +71,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Notes App</h1>
+      <h1 className="text-3xl font-bold mb-8">Simple Notes</h1>
       
       {/* Create/Edit Note Section */}
-      <Card className="mb-8">
+      <Card className="mb-8 bg-white">
         <CardHeader>
           <CardTitle>{editingId ? 'Edit Note' : 'Create New Note'}</CardTitle>
         </CardHeader>
@@ -106,7 +106,7 @@ export default function Home() {
       {/* Notes List */}
       <div className="space-y-4">
         {notes.map((note) => (
-          <Card key={note.id}>
+          <Card key={note.id} className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl">{note.title}</CardTitle>
               <div className="flex gap-2">

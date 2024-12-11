@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { Bitter } from "next/font/google";
 import "./globals.css";
+
+const bitter = Bitter({ 
+  subsets: ['latin'],
+  variable: '--font-bitter'
+});
 
 export const metadata: Metadata = {
   title: "Simple Notes",
@@ -13,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className={`antialiased ${bitter.variable}`}>{children}</body>
     </html>
   );
 }
