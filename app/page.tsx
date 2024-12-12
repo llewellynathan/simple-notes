@@ -24,6 +24,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const truncateContent = (content: string): string => {
   return content;
@@ -35,6 +42,8 @@ export default function Home() {
   const [newContent, setNewContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
 
   const handleCreateNote = () => {
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -85,6 +94,11 @@ export default function Home() {
     setSelectedNote(note);
   };
 
+  const handleDeleteClick = (note: Note) => {
+    setNoteToDelete(note);
+    setIsDeleteDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Simple Notes</h1>
@@ -125,14 +139,16 @@ export default function Home() {
           <Card key={note.id} className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl">
-                <span 
-                  className="cursor-pointer hover:opacity-70 transition-opacity"
-                  onClick={() => handleViewNote(note)}
-                >
-                  {note.title}
-                </span>
+                {note.title}
               </CardTitle>
               <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleViewNote(note)}
+                >
+                  View
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -140,33 +156,21 @@ export default function Home() {
                 >
                   Edit
                 </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="sm"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => handleDeleteClick(note)}
                     >
                       Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your note
-                        &quot;{note.title}&quot;.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteNote(note.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent>
@@ -201,6 +205,37 @@ export default function Home() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedNote(null)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+          </DialogHeader>
+          <div className="my-4">
+            <p>
+              This action cannot be undone. This will permanently delete your note
+              &quot;{noteToDelete?.title}&quot;.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (noteToDelete) {
+                  handleDeleteNote(noteToDelete.id);
+                }
+                setIsDeleteDialogOpen(false);
+                setNoteToDelete(null);
+              }}
+            >
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -91,4 +91,21 @@
   div[role="dialog"] > div[data-state] {
     background-color: white !important;
   }
+
+  /* Add these styles for the dropdown menu */
+  .dropdown-menu[data-state="open"] {
+    background-color: white;
+  }
+
+  /* Target the dropdown menu content specifically */
+  .dropdown-menu-content {
+    background-color: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* Add this more specific selector */
+  div[role="menu"] {
+    background-color: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border));
+  }
 }
