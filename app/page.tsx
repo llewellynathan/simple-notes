@@ -17,12 +17,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Note } from "./types/note";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
+const truncateContent = (content: string): string => {
+  return content;
+};
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
   const handleCreateNote = () => {
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -69,6 +81,10 @@ export default function Home() {
     setNotes(notes.filter(note => note.id !== id));
   };
 
+  const handleViewNote = (note: Note) => {
+    setSelectedNote(note);
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Simple Notes</h1>
@@ -108,7 +124,14 @@ export default function Home() {
         {notes.map((note) => (
           <Card key={note.id} className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl">{note.title}</CardTitle>
+              <CardTitle className="text-xl">
+                <span 
+                  className="cursor-pointer hover:opacity-70 transition-opacity"
+                  onClick={() => handleViewNote(note)}
+                >
+                  {note.title}
+                </span>
+              </CardTitle>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -147,7 +170,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
                 {note.content}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
@@ -157,6 +180,31 @@ export default function Home() {
           </Card>
         ))}
       </div>
+
+      {/* View Note Dialog */}
+      <Dialog 
+        open={!!selectedNote} 
+        onOpenChange={(open) => !open && setSelectedNote(null)}
+      >
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle>{selectedNote?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="my-4">
+            <p className="whitespace-pre-wrap">{selectedNote?.content}</p>
+            {selectedNote && (
+              <p className="text-xs text-muted-foreground mt-4">
+                Created: {selectedNote.createdAt.toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedNote(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
