@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function Login() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,7 +64,6 @@ export default function Login() {
 
       if (error) throw error;
 
-      // Check if email confirmation is required
       if (data?.user?.identities?.length === 0) {
         setError('Email confirmation required. Please check your inbox.');
       } else {
@@ -72,7 +71,6 @@ export default function Login() {
       }
     } catch (error) {
       if (error instanceof Error) {
-        // Handle specific error cases
         if (error.message.includes('Anonymous')) {
           setError('Email/Password sign up is not enabled. Please contact support.');
         } else {
@@ -87,48 +85,62 @@ export default function Login() {
   };
 
   return (
+    <Card className="w-full max-w-md bg-white">
+      <CardHeader>
+        <CardTitle>Login or Sign Up</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex gap-2">
+            <Button
+              onClick={handleLogin}
+              disabled={loading}
+              className="flex-1"
+            >
+              Login
+            </Button>
+            <Button
+              onClick={handleSignUp}
+              disabled={loading}
+              variant="outline"
+              className="flex-1"
+            >
+              Sign Up
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function Login() {
+  return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white">
-        <CardHeader>
-          <CardTitle>Login or Sign Up</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleLogin}
-                disabled={loading}
-                className="flex-1"
-              >
-                Login
-              </Button>
-              <Button
-                onClick={handleSignUp}
-                disabled={loading}
-                variant="outline"
-                className="flex-1"
-              >
-                Sign Up
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <Suspense fallback={
+        <Card className="w-full max-w-md bg-white">
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      }>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 } 
