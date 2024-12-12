@@ -186,7 +186,7 @@ export default function Home() {
         open={!!selectedNote} 
         onOpenChange={(open) => !open && setSelectedNote(null)}
       >
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-none !bg-white">
           <DialogHeader>
             <DialogTitle>{selectedNote?.title}</DialogTitle>
           </DialogHeader>

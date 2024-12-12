@@ -83,17 +83,12 @@
 
   /* Target the dialog overlay/backdrop */
   .fixed.inset-0.bg-background\/80.backdrop-blur-sm {
-    background-color: hsla(235, 27%, 8%, 0.5) !important;
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: none;
   }
 
-  /* Target the dialog content */
-  div[role="dialog"] {
-    background-color: white !important;
-  }
-
-  /* Target the dialog content container */
-  div[role="dialog"] > div {
+  /* Target the dialog content specifically */
+  div[role="dialog"] > div[data-state] {
     background-color: white !important;
   }
 }
