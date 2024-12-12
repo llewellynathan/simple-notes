@@ -24,7 +24,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +44,9 @@ export default function Home() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+  const [summaryNote, setSummaryNote] = useState<Note | null>(null);
+  const [summary, setSummary] = useState<string>("");
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleCreateNote = () => {
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -97,6 +100,30 @@ export default function Home() {
   const handleDeleteClick = (note: Note) => {
     setNoteToDelete(note);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleAISummary = async (note: Note) => {
+    setSummaryNote(note);
+    setIsSummarizing(true);
+    try {
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: note.content }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      setSummary(data.summary);
+    } catch (error) {
+      console.error('Failed to get summary:', error);
+      setSummary('Failed to generate summary. Please try again.');
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   return (
@@ -155,6 +182,13 @@ export default function Home() {
                   onClick={() => handleEditNote(note)}
                 >
                   Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAISummary(note)}
+                >
+                  AI Summary
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -236,6 +270,32 @@ export default function Home() {
               }}
             >
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog 
+        open={!!summaryNote} 
+        onOpenChange={(open) => !open && setSummaryNote(null)}
+      >
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-none !bg-white">
+          <DialogHeader>
+            <DialogTitle>AI Summary: {summaryNote?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="my-4">
+            {isSummarizing ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Generating summary...</span>
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap">{summary}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSummaryNote(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
