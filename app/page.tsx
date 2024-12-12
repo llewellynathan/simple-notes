@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { MoreVertical, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +55,7 @@ export default function Home() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -85,15 +86,27 @@ export default function Home() {
   };
 
   const handleCreateNote = async () => {
-    if (!newTitle.trim() || !newContent.trim()) return;
+    setError(null); // Clear any previous errors
+    
+    if (!newTitle.trim()) {
+      setError('Please add a title to your note');
+      return;
+    }
+    
+    if (!newContent.trim()) {
+      setError('Please add content to your note before saving');
+      return;
+    }
 
     try {
       const newNote = await createNote(newTitle, newContent);
       setNotes([newNote, ...notes]);
       setNewTitle('');
       setNewContent('');
+      setError(null); // Clear error on success
     } catch (error) {
       console.error('Failed to create note:', error);
+      setError('Failed to create note. Please try again.');
     }
   };
 
@@ -104,7 +117,19 @@ export default function Home() {
   };
 
   const handleUpdateNote = async () => {
-    if (!editingId || !newTitle.trim() || !newContent.trim()) return;
+    setError(null); // Clear any previous errors
+    
+    if (!newTitle.trim()) {
+      setError('Please add a title to your note');
+      return;
+    }
+    
+    if (!newContent.trim()) {
+      setError('Please add content to your note before saving');
+      return;
+    }
+
+    if (!editingId) return;
 
     try {
       const updatedNote = await updateNote(editingId, newTitle, newContent);
@@ -114,8 +139,10 @@ export default function Home() {
       setEditingId(null);
       setNewTitle('');
       setNewContent('');
+      setError(null); // Clear error on success
     } catch (error) {
       console.error('Failed to update note:', error);
+      setError('Failed to update note. Please try again.');
     }
   };
 
@@ -179,17 +206,24 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Simple Notes</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">{user?.email}</span>
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
+    <div className="container mx-auto p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-4xl font-bold">Simple Notes</h1>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem disabled>{user?.email}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      
+
       {/* Create/Edit Note Section */}
       <Card className="mb-8 bg-white">
         <CardHeader>
@@ -207,6 +241,11 @@ export default function Home() {
             onChange={(e) => setNewContent(e.target.value)}
             rows={4}
           />
+          {error && (
+            <p className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
           <div className="flex gap-2">
             {editingId ? (
               <>
@@ -231,11 +270,11 @@ export default function Home() {
         ) : (
           notes.map((note) => (
             <Card key={note.id} className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="space-y-3">
                 <CardTitle className="text-xl">
                   {note.title}
                 </CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -292,8 +331,8 @@ export default function Home() {
         open={!!selectedNote} 
         onOpenChange={(open) => !open && setSelectedNote(null)}
       >
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-none !bg-white">
-          <DialogHeader>
+        <DialogContent className="max-w-[calc(100%-32px)] max-h-[80vh] overflow-y-auto bg-white border-none !bg-white rounded-lg fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <DialogHeader className="text-left">
             <DialogTitle>{selectedNote?.title}</DialogTitle>
           </DialogHeader>
           <div className="my-4">
@@ -312,23 +351,29 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
+        <DialogContent className="max-w-[calc(100%-32px)] max-h-[80vh] overflow-y-auto bg-white border-none !bg-white rounded-lg fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <DialogHeader className="text-left">
             <DialogTitle>Are you sure?</DialogTitle>
           </DialogHeader>
-          <div className="my-4">
-            <p>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
               This action cannot be undone. This will permanently delete your note
               &quot;{noteToDelete?.title}&quot;.
             </p>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-3 sm:gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="w-full sm:w-auto"
               onClick={() => {
                 if (noteToDelete) {
                   handleDeleteNote(noteToDelete.id);
@@ -343,13 +388,14 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
+      {/* AI Summary Dialog */}
       <Dialog 
         open={!!summaryNote} 
         onOpenChange={(open) => !open && setSummaryNote(null)}
       >
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-none !bg-white">
-          <DialogHeader>
-            <DialogTitle>AI Summary: {summaryNote?.title}</DialogTitle>
+        <DialogContent className="max-w-[calc(100%-32px)] max-h-[80vh] overflow-y-auto bg-white border-none !bg-white rounded-lg fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <DialogHeader className="text-left">
+            <DialogTitle>{summaryNote?.title}</DialogTitle>
           </DialogHeader>
           <div className="my-4">
             {isSummarizing ? (

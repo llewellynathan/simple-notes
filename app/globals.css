@@ -68,17 +68,13 @@
     --dialog-overlay: 0 0% 0%;
   }
 
-  h1, h2, h3, h4, h5, h6,
-  .card-title {
-    font-family: var(--font-bitter);
-  }
-  
   * {
     @apply border-[hsl(var(--border))];
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: var(--font-inter);
   }
 
   /* Target the dialog overlay/backdrop */

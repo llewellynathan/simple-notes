@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Bitter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/lib/auth-context';
 
-const bitter = Bitter({ 
+const inter = Inter({ 
   subsets: ['latin'],
-  variable: '--font-bitter'
+  variable: '--font-inter'
 });
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased ${bitter.variable}`}>
+      <body className={`antialiased ${inter.variable} font-sans`}>
         <AuthProvider>
           {children}
         </AuthProvider>
