@@ -56,7 +56,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-white">
         <CardHeader>
           <CardTitle>Login or Sign Up</CardTitle>
         </CardHeader>
