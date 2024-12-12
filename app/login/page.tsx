@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const errorMsg = searchParams.get('error');
+    if (errorMsg) {
+      setError(decodeURIComponent(errorMsg));
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,16 +47,40 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        },
       });
 
       if (error) throw error;
-      setError('Check your email for the confirmation link.');
+
+      // Check if email confirmation is required
+      if (data?.user?.identities?.length === 0) {
+        setError('Email confirmation required. Please check your inbox.');
+      } else {
+        setError('Check your email for the confirmation link.');
+      }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      if (error instanceof Error) {
+        // Handle specific error cases
+        if (error.message.includes('Anonymous')) {
+          setError('Email/Password sign up is not enabled. Please contact support.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('An error occurred during sign up');
+      }
     } finally {
       setLoading(false);
     }
