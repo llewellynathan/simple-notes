@@ -52,7 +52,16 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadNotes();
+    const initializeApp = async () => {
+      try {
+        await loadNotes();
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+        // Optionally set some error state here to show to the user
+      }
+    };
+    
+    initializeApp();
   }, []);
 
   const loadNotes = async () => {
