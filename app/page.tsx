@@ -57,7 +57,9 @@ export default function Home() {
         await loadNotes();
       } catch (error) {
         console.error('Failed to initialize app:', error);
-        // Optionally set some error state here to show to the user
+        // Show error state to user
+        setNotes([]);
+        setIsLoading(false);
       }
     };
     
@@ -68,9 +70,10 @@ export default function Home() {
     setIsLoading(true);
     try {
       const notes = await getNotes();
-      setNotes(notes);
+      setNotes(notes || []);
     } catch (error) {
       console.error('Failed to load notes:', error);
+      setNotes([]);
     } finally {
       setIsLoading(false);
     }
