@@ -70,7 +70,7 @@ export default function Home() {
     setIsLoading(true);
     try {
       const notes = await getNotes();
-      setNotes(notes || []);
+      setNotes(notes);
     } catch (error) {
       console.error('Failed to load notes:', error);
       setNotes([]);
