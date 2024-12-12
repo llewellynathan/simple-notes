@@ -33,12 +33,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const truncateContent = (content: string): string => {
   return content;
 };
 
 export default function Home() {
+  const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
@@ -50,6 +54,7 @@ export default function Home() {
   const [summary, setSummary] = useState<string>("");
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -164,9 +169,26 @@ export default function Home() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Simple Notes</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Simple Notes</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">{user?.email}</span>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+      </div>
       
       {/* Create/Edit Note Section */}
       <Card className="mb-8 bg-white">

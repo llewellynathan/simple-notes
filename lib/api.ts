@@ -2,9 +2,12 @@ import { supabase } from './supabase';
 import { Note } from '@/app/types/note';
 
 export async function getNotes(): Promise<Note[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from('notes')
     .select('*')
+    .eq('user_id', user?.id)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
@@ -12,9 +15,11 @@ export async function getNotes(): Promise<Note[]> {
 }
 
 export async function createNote(title: string, content: string): Promise<Note> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from('notes')
-    .insert([{ title, content }])
+    .insert([{ title, content, user_id: user?.id }])
     .select()
     .single();
   
