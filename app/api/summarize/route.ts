@@ -2,7 +2,11 @@ import { Anthropic } from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
-console.log('API Key exists:', !!process.env.CLAUDE_API_KEY);
+console.log('Environment variables:', {
+  hasApiKey: !!process.env.CLAUDE_API_KEY,
+  apiKeyLength: process.env.CLAUDE_API_KEY?.length,
+  nodeEnv: process.env.NODE_ENV
+});
 
 const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_API_KEY,
@@ -29,6 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    console.log('API Key present, length:', process.env.CLAUDE_API_KEY.length);
     console.log('Sending request to Claude');
     const message = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',

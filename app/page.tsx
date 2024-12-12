@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from "react";
+import { getNotes, createNote, updateNote, deleteNote } from "@/lib/api";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,20 +49,35 @@ export default function Home() {
   const [summaryNote, setSummaryNote] = useState<Note | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateNote = () => {
+  useEffect(() => {
+    loadNotes();
+  }, []);
+
+  const loadNotes = async () => {
+    setIsLoading(true);
+    try {
+      const notes = await getNotes();
+      setNotes(notes);
+    } catch (error) {
+      console.error('Failed to load notes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateNote = async () => {
     if (!newTitle.trim() || !newContent.trim()) return;
 
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: newTitle,
-      content: newContent,
-      createdAt: new Date(),
-    };
-
-    setNotes([newNote, ...notes]);
-    setNewTitle('');
-    setNewContent('');
+    try {
+      const newNote = await createNote(newTitle, newContent);
+      setNotes([newNote, ...notes]);
+      setNewTitle('');
+      setNewContent('');
+    } catch (error) {
+      console.error('Failed to create note:', error);
+    }
   };
 
   const handleEditNote = (note: Note) => {
@@ -69,18 +86,20 @@ export default function Home() {
     setNewContent(note.content);
   };
 
-  const handleUpdateNote = () => {
+  const handleUpdateNote = async () => {
     if (!editingId || !newTitle.trim() || !newContent.trim()) return;
 
-    setNotes(notes.map(note => 
-      note.id === editingId 
-        ? { ...note, title: newTitle, content: newContent }
-        : note
-    ));
-    
-    setEditingId(null);
-    setNewTitle('');
-    setNewContent('');
+    try {
+      const updatedNote = await updateNote(editingId, newTitle, newContent);
+      setNotes(notes.map(note => 
+        note.id === editingId ? updatedNote : note
+      ));
+      setEditingId(null);
+      setNewTitle('');
+      setNewContent('');
+    } catch (error) {
+      console.error('Failed to update note:', error);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -89,8 +108,15 @@ export default function Home() {
     setNewContent('');
   };
 
-  const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter(note => note.id !== id));
+  const handleDeleteNote = async (id: string) => {
+    try {
+      await deleteNote(id);
+      setNotes(notes.filter(note => note.id !== id));
+      setIsDeleteDialogOpen(false);
+      setNoteToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete note:', error);
+    }
   };
 
   const handleViewNote = (note: Note) => {
@@ -162,61 +188,69 @@ export default function Home() {
 
       {/* Notes List */}
       <div className="space-y-4">
-        {notes.map((note) => (
-          <Card key={note.id} className="bg-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl">
-                {note.title}
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleViewNote(note)}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditNote(note)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAISummary(note)}
-                >
-                  AI Summary
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={() => handleDeleteClick(note)}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
-                {note.content}
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Created: {note.createdAt.toLocaleDateString()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : notes.length === 0 ? (
+          <p className="text-center text-muted-foreground">No notes yet. Create one above!</p>
+        ) : (
+          notes.map((note) => (
+            <Card key={note.id} className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl">
+                  {note.title}
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleViewNote(note)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditNote(note)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAISummary(note)}
+                  >
+                    AI Summary
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDeleteClick(note)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
+                  {note.content}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Created: {new Date(note.created_at).toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* View Note Dialog */}
@@ -232,7 +266,7 @@ export default function Home() {
             <p className="whitespace-pre-wrap">{selectedNote?.content}</p>
             {selectedNote && (
               <p className="text-xs text-muted-foreground mt-4">
-                Created: {selectedNote.createdAt.toLocaleDateString()}
+                Created: {new Date(selectedNote.created_at).toLocaleDateString()}
               </p>
             )}
           </div>
