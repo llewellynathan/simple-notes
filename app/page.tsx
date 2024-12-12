@@ -131,7 +131,7 @@ export default function Home() {
                       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                       <AlertDialogDescription>
                         This action cannot be undone. This will permanently delete your note
-                        "{note.title}".
+                        &quot;{note.title}&quot;.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
