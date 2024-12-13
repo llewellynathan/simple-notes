@@ -206,7 +206,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
+    <div className="container mx-auto p-4 space-y-4 max-w-[880px]">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold">Simple Notes</h1>
         <DropdownMenu>
