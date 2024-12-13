@@ -217,7 +217,7 @@ export default function Home() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem disabled>{user?.email}</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+            <DropdownMenuItem onClick={handleLogout}>
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
