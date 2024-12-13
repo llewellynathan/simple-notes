@@ -211,7 +211,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold">Simple Notes</h1>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="sm">
               <Menu className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
